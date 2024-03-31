@@ -18,7 +18,7 @@ contract MedicalRecords {
     }
 
     // Mapping from user's address to their public keys
-    mapping(address => bytes32[2]) public publicKeys;
+    mapping(address => bytes) public publicKeys;
     // Mapping from user's address to their roles
     mapping(address => Role) public userRoles;
     // Mapping from patient's address to their records
@@ -43,7 +43,7 @@ contract MedicalRecords {
 
     // Function to store public keys and assign roles
     // This function allows a user to store their public key and assign their role
-    function modifyUser(bytes32[2] memory publicKey, Role _role) public {
+    function modifyUser(bytes calldata publicKey, Role _role) public {
         require(_role == Role.Patient || _role == Role.Doctor, "Invalid role.");
         publicKeys[msg.sender] = publicKey;
         userRoles[msg.sender] = _role;

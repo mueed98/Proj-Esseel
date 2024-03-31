@@ -3,5 +3,9 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "hardhat": "^2.22.2"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "v5ethers": "npm:ethers@^5.7.2"
   }
 }
