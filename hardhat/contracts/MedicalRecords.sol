@@ -27,7 +27,9 @@ contract MedicalRecords {
     mapping(address => address[]) public docterAccess;
 
     address[] public docterList;
+    uint256 public docterCount;
     address[] public patientList;
+    uint256 public patientCount;
 
     // Modifier for role-based access control
     modifier onlyRole(Role _role) {
@@ -43,8 +45,12 @@ contract MedicalRecords {
         require(userRoles[msg.sender] == Role.None, "Role assigned Already");
         if (_role == Role.Doctor && publicKeys[msg.sender].length == 0) {
             docterList.push(msg.sender);
-        } else {
+            docterCount++;
+        } else if (
+            _role == Role.Patient && publicKeys[msg.sender].length == 0
+        ) {
             patientList.push(msg.sender);
+            patientCount++;
         }
         publicKeys[msg.sender] = publicKey;
         userRoles[msg.sender] = _role;
