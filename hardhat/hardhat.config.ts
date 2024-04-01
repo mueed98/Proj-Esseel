@@ -14,10 +14,25 @@ const config: HardhatUserConfig = {
 		},
 	},
 	networks: {
-		amoy: {
+		sepolia: {
 			url: process.env.ARB_SEPOLIA_RPC,
 			accounts: [process.env.PRIVATE_KEY_FOR_TESTING || ""],
 		},
+	},
+	etherscan: {
+		apiKey: {
+			sepolia: process.env.ARBSCAN_SEPOLIA_API_KEY || "",
+		},
+		customChains: [
+			{
+				network: "sepolia",
+				chainId: 421614,
+				urls: {
+					apiURL: "https://api-sepolia.arbiscan.io/api",
+					browserURL: "https://sepolia.arbiscan.io/",
+				},
+			},
+		],
 	},
 };
 
