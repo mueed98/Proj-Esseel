@@ -12,7 +12,7 @@ contract MedicalRecords {
 
     // Patient struct
     struct Patient {
-        bytes encryptedIPFSLink; // Encrypted IPFS link to the patient's medical record
+        bool exists; // Encrypted IPFS link to the patient's medical record
         mapping(address => bool) doctorPermission; // Mapping to keep track of doctors authorized to access the medical record
         mapping(address => bytes) doctorFiles; // Mapping to keep track of files associated with each authorized doctor
     }
@@ -24,6 +24,11 @@ contract MedicalRecords {
     // Mapping from patient's address to their records
     mapping(address => Patient) public patients;
 
+    mapping(address => address[]) public docterAccess;
+
+    address[] public docterList;
+    address[] public patientList;
+
     // Modifier for role-based access control
     modifier onlyRole(Role _role) {
         require(userRoles[msg.sender] == _role, "Not authorized.");
@@ -33,18 +38,14 @@ contract MedicalRecords {
     // Empty constructor
     constructor() {}
 
-    // Function to save encrypted IPFS link
-    // This function allows a patient to save their encrypted IPFS link to their medical records
-    function saveEncryptedIPFSLink(
-        bytes calldata _encryptedLink
-    ) public onlyRole(Role.Patient) {
-        patients[msg.sender].encryptedIPFSLink = _encryptedLink;
-    }
-
-    // Function to store public keys and assign roles
-    // This function allows a user to store their public key and assign their role
     function modifyUser(bytes calldata publicKey, Role _role) public {
         require(_role == Role.Patient || _role == Role.Doctor, "Invalid role.");
+        require(userRoles[msg.sender] == Role.None, "Role assigned Already");
+        if (_role == Role.Doctor && publicKeys[msg.sender].length == 0) {
+            docterList.push(msg.sender);
+        } else {
+            patientList.push(msg.sender);
+        }
         publicKeys[msg.sender] = publicKey;
         userRoles[msg.sender] = _role;
     }
@@ -62,18 +63,21 @@ contract MedicalRecords {
         } else {
             patients[msg.sender].doctorPermission[_doctor] = true;
             patients[msg.sender].doctorFiles[_doctor] = _fileForDoctor;
+            docterAccess[_doctor].push(msg.sender);
         }
     }
 
-    // Function for doctor to read patient's encrypted IPFS link
-    // This function allows an authorized doctor to read the encrypted IPFS link to a patient's medical record
-    function readEncryptedIPFSLink(
-        address _patient
-    ) public view onlyRole(Role.Doctor) returns (bytes memory) {
-        require(
-            patients[_patient].doctorPermission[msg.sender],
-            "You do not have access to this patient's medical record."
-        );
-        return patients[_patient].doctorFiles[msg.sender];
+    function getDoctorPermission(
+        address _patient,
+        address _doctor
+    ) public view returns (bool) {
+        return patients[_patient].doctorPermission[_doctor];
+    }
+
+    function getDoctorFiles(
+        address _patient,
+        address _doctor
+    ) public view returns (bytes memory) {
+        return patients[_patient].doctorFiles[_doctor];
     }
 }
