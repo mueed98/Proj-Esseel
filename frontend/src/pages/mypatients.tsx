@@ -1,24 +1,33 @@
 // @ts-nocheck
 import {
+  Avatar,
   Box,
   Button,
-  InputAdornment,
+  CircularProgress,
   TextField,
   Typography,
 } from "@mui/material";
 import { NavDrawer } from "../components/drawer";
-import { useState } from "react";
-import SearchIcon from "@mui/icons-material/Search";
+import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { medicalRecordJson } from "./login";
 import { SigningKey } from "ethers/lib/utils";
 import { helper } from "../helper";
 
 export const MyPatients = (): JSX.Element => {
-  const [search, setSearch] = useState("");
+  const userType = sessionStorage.getItem("type");
+  const [list, setList] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // const [search, setSearch] = useState("");
   const [userAddress, setUserAddress] = useState("");
-  const [compressedPDF, setCompressedPDF] = useState(null);
-  const [fileContent, setFileContent] = useState<any>();
+  // const [compressedPDF, setCompressedPDF] = useState(null);
+  // const [fileContent, setFileContent] = useState<any>();
+
+  const [selectedPat, setselectedPat] = useState("");
+  const [privateKey, setprivateKey] = useState("");
+
+  const [error, seterror] = useState("");
 
   const provider = new ethers.providers.Web3Provider(window?.ethereum);
   const signer = provider.getSigner();
@@ -31,166 +40,231 @@ export const MyPatients = (): JSX.Element => {
     signer
   );
 
-  // const saveFile = async () => {
-  // const doctorPublicKeyHex = await MedicalRecordsContract.publicKeys(
-  //   "0x1606Fdaef5Ca1620877775B0C6077Ca83260c047"
-  // );
-
-  // Convert the public key to a bytes array, which is what ethers.js expects
-  // const doctorPublicKeyBytes = ethers.utils.arrayify(doctorPublicKeyHex);
-
-  // Compute the shared secret
-  // const sharedSecret = new SigningKey(
-  //   "a44b6cb3bfa2a3dddc1bdb85b566156936ebdc7145e004ac25fe6ec269c9d52b"
-  // ).computeSharedSecret(doctorPublicKeyBytes);
-
-  // Encrypt the file with the shared secret
-  // const FILE = await helper.compressPDF();
-  // const encryptedFile = await helper.encrypt(FILE, sharedSecret);
-  // const encryptedFileBytes = helper.base64ToBytes(encryptedFile);
-
-  // Save the file for doctor
-  //   await MedicalRecordsContract.modifyAccess(
-  //     "0x1606Fdaef5Ca1620877775B0C6077Ca83260c047",
-  //     true,
-  //     encryptedFileBytes
+  // Use a file input to allow the user to select a PDF file
+  // const handleFileInputChange = async (event) => {
+  //   const doctorPublicKeyHex = await MedicalRecordsContract.publicKeys(
+  //     "0x1606Fdaef5Ca1620877775B0C6077Ca83260c047"
   //   );
+
+  //   console.log(doctorPublicKeyHex, "doctorPublicKeyHex");
+
+  //   // Convert the public key to a bytes array, which is what ethers.js expects
+  //   const doctorPublicKeyBytes = ethers.utils.arrayify(doctorPublicKeyHex);
+
+  //   console.log(doctorPublicKeyBytes, "doctorPublicKeyBytes");
+
+  //   // Compute the shared secret
+  //   const sharedSecret = new SigningKey(
+  //     "0xa44b6cb3bfa2a3dddc1bdb85b566156936ebdc7145e004ac25fe6ec269c9d52b"
+  //   ).computeSharedSecret(doctorPublicKeyBytes);
+
+  //   console.log(sharedSecret, "sharedSecret doctor");
+
+  //   const file = event.target.files[0];
+  //   const reader = new FileReader();
+  //   console.log(file, "file");
+
+  //   reader.onload = async (event) => {
+  //     const content = event.target.result;
+  //     // setFileContent(content);
+
+  //     const FILE = await helper.compressPDF(content);
+  //     console.log(FILE, "FILE");
+  //     const encryptedFile = await helper.encrypt(FILE, sharedSecret);
+  //     console.log(encryptedFile, "encryptedFile");
+
+  //     const encryptedFileBytes = helper.base64ToBytes(encryptedFile);
+  //     console.log(encryptedFileBytes, "encryptedFileBytes");
+
+  //     // Save the file for doctor
+  //     await MedicalRecordsContract.modifyAccess(
+  //       "0x1606Fdaef5Ca1620877775B0C6077Ca83260c047",
+  //       true,
+  //       encryptedFileBytes
+  //     );
+  //   };
+
+  //   reader.readAsArrayBuffer(file);
   // };
 
-  // Use a file input to allow the user to select a PDF file
-  const handleFileInputChange = async (event) => {
-    const doctorPublicKeyHex = await MedicalRecordsContract.publicKeys(
-      "0x1606Fdaef5Ca1620877775B0C6077Ca83260c047"
-    );
-
-    console.log(doctorPublicKeyHex, "doctorPublicKeyHex");
-
-    // Convert the public key to a bytes array, which is what ethers.js expects
-    const doctorPublicKeyBytes = ethers.utils.arrayify(doctorPublicKeyHex);
-
-    console.log(doctorPublicKeyBytes, "doctorPublicKeyBytes");
-
-    // Compute the shared secret
-    const sharedSecret = new SigningKey(
-      "0xa44b6cb3bfa2a3dddc1bdb85b566156936ebdc7145e004ac25fe6ec269c9d52b"
-    ).computeSharedSecret(doctorPublicKeyBytes);
-
-    console.log(sharedSecret, "sharedSecret doctor");
-
-    const file = event.target.files[0];
-    const reader = new FileReader();
-    console.log(file, "file");
-
-    reader.onload = async (event) => {
-      const content = event.target.result;
-      // setFileContent(content);
-
-      const FILE = await helper.compressPDF(content);
-      console.log(FILE, "FILE");
-      const encryptedFile = await helper.encrypt(FILE, sharedSecret);
-      console.log(encryptedFile, "encryptedFile");
-
-      const encryptedFileBytes = helper.base64ToBytes(encryptedFile);
-      console.log(encryptedFileBytes, "encryptedFileBytes");
-
-      // Save the file for doctor
-      await MedicalRecordsContract.modifyAccess(
-        "0x1606Fdaef5Ca1620877775B0C6077Ca83260c047",
-        true,
-        encryptedFileBytes
-      );
-    };
-
-    reader.readAsArrayBuffer(file);
-  };
-
   const getFile = async () => {
-    const PATIENTPublicKeyHex = await MedicalRecordsContract.publicKeys(
-      "0x1e6d684046f7d99f78639562bB17d53d3CEFc937"
-    );
-    console.log(PATIENTPublicKeyHex, "PATIENTPublicKeyHex");
+    try {
+      setLoading(true);
+      const PATIENTPublicKeyHex = await MedicalRecordsContract.publicKeys(
+        // "0x1e6d684046f7d99f78639562bB17d53d3CEFc937"
+        selectedPat
+      );
+      console.log(PATIENTPublicKeyHex, "PATIENTPublicKeyHex");
 
-    // const patientPublicKeyBytes = ethers.utils.arrayify(PATIENTPublicKeyHex);
+      // const patientPublicKeyBytes = ethers.utils.arrayify(PATIENTPublicKeyHex);
 
-    const sharedSecret = new SigningKey(
-      "0x88d8b9f5044e81b0a31a9667cedef95358c18ee97a264482517d50992bc53970"
-    ).computeSharedSecret(PATIENTPublicKeyHex);
-    // ).computeSharedSecret(patientPublicKeyBytes);
+      const sharedSecret = new SigningKey(
+        // "0x88d8b9f5044e81b0a31a9667cedef95358c18ee97a264482517d50992bc53970"
+        privateKey
+      ).computeSharedSecret(PATIENTPublicKeyHex);
+      // ).computeSharedSecret(patientPublicKeyBytes);
 
-    console.log(sharedSecret, "sharedSecret patient");
+      console.log(sharedSecret, "sharedSecret patient");
 
-    const doctorFile = await MedicalRecordsContract.getDoctorFiles(
-      "0x1e6d684046f7d99f78639562bB17d53d3CEFc937",
-      "0x1606Fdaef5Ca1620877775B0C6077Ca83260c047"
-    ); // Convert the encrypted file from bytes to base64
+      const doctorFile = await MedicalRecordsContract.getDoctorFiles(
+        // "0x1e6d684046f7d99f78639562bB17d53d3CEFc937",
+        selectedPat,
+        // "0x1606Fdaef5Ca1620877775B0C6077Ca83260c047"
+        userAddress
+      ); // Convert the encrypted file from bytes to base64
 
-    console.log(doctorFile, "doctorFile");
+      console.log(doctorFile, "doctorFile");
 
-    const encryptedFileBase64 = await helper.bytesToBase64(doctorFile); // Decrypt the base64 file
+      const encryptedFileBase64 = await helper.bytesToBase64(doctorFile); // Decrypt the base64 file
 
-    console.log(encryptedFileBase64, "encryptedFileBase64");
+      console.log(encryptedFileBase64, "encryptedFileBase64");
 
-    const decryptedFileBase64 = await helper.decrypt(
-      encryptedFileBase64,
-      sharedSecret
-    ); // Decompress the file
+      const decryptedFileBase64 = await helper.decrypt(
+        encryptedFileBase64,
+        sharedSecret
+      ); // Decompress the file
 
-    console.log(decryptedFileBase64, "decryptedFileBase64");
+      console.log(decryptedFileBase64, "decryptedFileBase64");
 
-    await helper.decompressPDF(decryptedFileBase64, "doctor");
+      await helper.decompressPDF(decryptedFileBase64, "doctor");
+      setLoading(false);
+    } catch (error) {
+      seterror(error);
+      setLoading(false);
+    }
   };
 
-  const checkSharedSecret = async () => {
-    const doctorAdd = "0x1606Fdaef5Ca1620877775B0C6077Ca83260c047";
-    const doctorPri =
-      "0x88d8b9f5044e81b0a31a9667cedef95358c18ee97a264482517d50992bc53970";
+  const getList = async () => {
+    try {
+      const patCount = await MedicalRecordsContract.patientCount();
 
-    const patientAdd = "0x1e6d684046f7d99f78639562bB17d53d3CEFc937";
-    const patientPri =
-      "0xa44b6cb3bfa2a3dddc1bdb85b566156936ebdc7145e004ac25fe6ec269c9d52b";
+      for (let i = 0; i < patCount; i++) {
+        const patientListAdd = await MedicalRecordsContract.patientList(i);
 
-    const doctorPublicKeyHex = await MedicalRecordsContract.publicKeys(
-      doctorAdd
-    );
-    const doctorPublicKeyBytes = ethers.utils.arrayify(doctorPublicKeyHex);
-    const patientPublicKeyHex = await MedicalRecordsContract.publicKeys(
-      patientAdd
-    );
-    const patientPublicKeyBytes = ethers.utils.arrayify(patientPublicKeyHex);
+        const checkDownload = await MedicalRecordsContract.getDoctorPermission(
+          patientListAdd.toString(),
+          userAddress
+        );
 
-    // console.log(doctorPublicKeyHex,patientPublicKeyHex,"publickey");
-    // console.log(doctorPublicKeyHex,patientPublicKeyHex,"publickey");
-
-    console.log(
-      ethers.utils.computePublicKey(patientPri),
-      patientPublicKeyHex,
-      "patient"
-    );
-    console.log(
-      ethers.utils.computePublicKey(doctorPri),
-      doctorPublicKeyHex,
-      "doctor"
-    );
-
-    const sharedSecret_P = new SigningKey(patientPri).computeSharedSecret(
-      doctorPublicKeyBytes
-    );
-
-    const sharedSecret_D = new SigningKey(doctorPri).computeSharedSecret(
-      patientPublicKeyBytes
-    );
-    // console.log(sharedSecret_P,sharedSecret_D,"shared sector");
+        if (checkDownload)
+          setList((prev) => {
+            if (prev.includes(patientListAdd.toString())) {
+              return [...prev];
+            } else {
+              return [...prev, patientListAdd.toString()];
+            }
+          });
+      }
+    } catch (error) {
+      seterror(error);
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    if (userAddress) getList();
+  }, [userAddress]);
 
   return (
-    // console.log(fileContent, "fileCOntent"),
     <Box display="flex">
       <NavDrawer />
 
-      <Box marginLeft="210px" marginTop="20px">
+      <Box marginLeft="310px" marginTop="20px">
         <Typography variant="h6" fontWeight="800" color="black">
           My Patients
         </Typography>
+
+        <Typography
+          variant="body1"
+          fontWeight="800"
+          color="black"
+          marginTop="20px"
+        >
+          Step 1: Choose a patient
+        </Typography>
+
+        {list.map((val) => (
+          <Box
+            display="flex"
+            alignItems="center"
+            padding="20px"
+            width="540px"
+            justifyContent="space-between"
+            marginTop="5px"
+            sx={
+              selectedPat
+                ? {
+                    backgroundColor: "rgb(249 250 251)",
+                    borderRadius: "10px",
+                    borderWidth: "1px",
+                    borderStyle: "solid",
+                    borderColor: "green",
+                    cursor: "pointer",
+                  }
+                : {
+                    backgroundColor: "rgb(249 250 251)",
+                    borderRadius: "10px",
+                  }
+            }
+            onClick={() => setselectedPat(val)}
+          >
+            <Box display="flex">
+              <Avatar
+                sx={{ height: "54px", width: "54px", marginRight: "10px" }}
+              />
+              <Box>
+                <Typography variant="h6" fontWeight="800">
+                  {val}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        ))}
+
+        <Typography
+          variant="body1"
+          fontWeight="800"
+          color="black"
+          marginTop="20px"
+        >
+          Step 2: Please enter your private key
+        </Typography>
+
+        <TextField
+          variant="outlined"
+          value={privateKey}
+          onChange={(e) =>
+            setprivateKey("0x" + String(e.target.value).replace("0x", ""))
+          }
+          size="small"
+          sx={{ width: "70vw", marginTop: "5px" }}
+          placeholder="Enter private key"
+          disabled={selectedPat ? false : true}
+        />
+
+        <Typography
+          variant="body1"
+          fontWeight="800"
+          color="black"
+          marginTop="20px"
+        >
+          Step 3: Download patient's medical record
+        </Typography>
+
+        <Button
+          variant="contained"
+          sx={{ textTransform: "none" }}
+          onClick={getFile}
+          disabled={privateKey.length === 66 && !loading ? false : true}
+        >
+          {loading ? <CircularProgress /> : "Download"}
+        </Button>
+
+        {error && (
+          <Typography variant="subtitle1" sx={{ color: "red" }}>
+            {error}
+          </Typography>
+        )}
 
         {/* <TextField
         variant="outlined"
@@ -209,7 +283,7 @@ export const MyPatients = (): JSX.Element => {
         }}
       /> */}
 
-        <div>
+        {/* <div>
           <input type="file" onChange={handleFileInputChange} />
           {compressedPDF && (
             <a
@@ -219,11 +293,11 @@ export const MyPatients = (): JSX.Element => {
               Download Compressed PDF
             </a>
           )}
-        </div>
+        </div> */}
 
-        <Button variant="contained" onClick={getFile}>
+        {/* <Button variant="contained" onClick={getFile}>
           Login
-        </Button>
+        </Button> */}
       </Box>
     </Box>
   );

@@ -1,32 +1,88 @@
-import { useState } from "react";
-import {
-  Avatar,
-  Box,
-  Button,
-  Divider,
-  IconButton,
-  Menu,
-  MenuItem,
-  Typography,
-} from "@mui/material";
+import { useEffect, useState } from "react";
+import { Box, Divider, Typography } from "@mui/material";
 import { NavDrawer } from "../components/drawer";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { ethers } from "ethers";
+import { medicalRecordJson } from "./login";
 
 export const DrPortal = (): JSX.Element => {
-  const [selected, setSelected] = useState("dashboard");
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
+  const userType = sessionStorage.getItem("type");
+  const [count, setCount] = useState();
+  const [list, setList] = useState([]);
+
+  // const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  // const open = Boolean(anchorEl);
+  // const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  //   setAnchorEl(event.currentTarget);
+  // };
+  // const handleClose = () => {
+  //   setAnchorEl(null);
+  // };
+
+  const provider = new ethers.providers.Web3Provider(window?.ethereum);
+  const signer = provider.getSigner();
+
+  // signer.getAddress().then((res) => setUserAddress(res));
+
+  const MedicalRecordsContract = new ethers.Contract(
+    "0xe6eDd92F2677f0E561Db49Da2b979DC70D15546a",
+    medicalRecordJson,
+    signer
+  );
+
+  const getCount = async () => {
+    if (userType === "patient") {
+      const doctorCount = await MedicalRecordsContract.docterCount();
+      // return doctorCount;
+      setCount(doctorCount.toString());
+    } else {
+      const patientCount = await MedicalRecordsContract.patientCount();
+      // return patientCount;
+      setCount(patientCount.toString());
+    }
   };
-  const handleClose = () => {
-    setAnchorEl(null);
+
+  const getList = async () => {
+    if (userType === "patient") {
+      const docCount = await MedicalRecordsContract.docterCount();
+
+      for (let i = 0; i < docCount; i++) {
+        const docterListAdd = await MedicalRecordsContract.docterList(i);
+
+        setList((prev) => {
+          if (prev.includes(docterListAdd.toString())) {
+            return [...prev];
+          } else {
+            return [...prev, docterListAdd.toString()];
+          }
+        });
+      }
+    } else {
+      const patCount = await MedicalRecordsContract.patientCount();
+
+      for (let i = 0; i < patCount; i++) {
+        const patientListAdd = await MedicalRecordsContract.patientList(i);
+
+        setList((prev) => {
+          if (prev.includes(patientListAdd.toString())) {
+            return [...prev];
+          } else {
+            return [...prev, patientListAdd.toString()];
+          }
+        });
+      }
+    }
   };
+
+  useEffect(() => {
+    getCount();
+    getList();
+  }, [userType]);
+
   return (
     <Box display="flex">
       <NavDrawer />
 
-      <Box marginLeft="210px" marginTop="20px">
+      <Box marginLeft="310px" marginTop="20px">
         <Typography variant="h6" fontWeight="800" color="black">
           Dashboard
         </Typography>
@@ -42,9 +98,11 @@ export const DrPortal = (): JSX.Element => {
             marginRight="20px"
           >
             <Box>
-              <Typography variant="body2">Patients</Typography>
+              <Typography variant="body2">
+                {userType === "patient" ? "Doctors" : "Patients"}
+              </Typography>
               <Typography variant="h6" fontWeight="800">
-                666
+                {count}
               </Typography>
             </Box>
 
@@ -54,7 +112,7 @@ export const DrPortal = (): JSX.Element => {
             ></i>
           </Box>
 
-          <Box
+          {/* <Box
             display="flex"
             justifyContent="space-between"
             alignItems="center"
@@ -71,11 +129,11 @@ export const DrPortal = (): JSX.Element => {
               className="fas fa-heartbeat"
               style={{ fontSize: "24px", color: "green" }}
             ></i>
-          </Box>
+          </Box> */}
         </Box>
 
         <Box display="flex" marginTop="20px">
-          <Box
+          {/* <Box
             display="flex"
             flexDirection="column"
             // justifyContent="space-between"
@@ -119,7 +177,7 @@ export const DrPortal = (): JSX.Element => {
                 On Going
               </Typography>
             </Box>
-          </Box>
+          </Box> */}
 
           <Box
             display="flex"
@@ -130,10 +188,10 @@ export const DrPortal = (): JSX.Element => {
           >
             <Box display="flex" justifyContent="space-between">
               <Typography variant="h6" fontWeight="800">
-                My Patient
+                {userType === "patient" ? "Doctors" : "Patients"}
               </Typography>
 
-              <div>
+              {/* <div>
                 <IconButton
                   id="basic-button"
                   aria-controls={open ? "basic-menu" : undefined}
@@ -157,7 +215,7 @@ export const DrPortal = (): JSX.Element => {
                   <MenuItem onClick={handleClose}>My account</MenuItem>
                   <MenuItem onClick={handleClose}>Logout</MenuItem>
                 </Menu>
-              </div>
+              </div> */}
             </Box>
 
             <Divider
@@ -165,19 +223,19 @@ export const DrPortal = (): JSX.Element => {
               sx={{ width: "100%", marginTop: "10px" }}
             />
 
-            <Box
-              display="flex"
-              flexDirection="column"
-              marginTop="20px"
-        
-            >
-              <Typography variant="body1" fontWeight="600">
+            <Box display="flex" flexDirection="column" marginTop="20px">
+              {/* <Typography variant="body1" fontWeight="600">
                 John Doe
               </Typography>
               <Typography variant="body2">johndoe@example.com</Typography>
-              <Typography variant="body2">(123) 456-7890</Typography>
+              <Typography variant="body2">(123) 456-7890</Typography> */}
+              {list.map((val) => (
+                <Typography variant="body1" fontWeight="600">
+                  {val}
+                </Typography>
+              ))}
 
-              <Box
+              {/* <Box
                 display="flex"
                 justifyContent="space-between"
                 alignItems="center"
@@ -212,7 +270,7 @@ export const DrPortal = (): JSX.Element => {
                     <MenuItem onClick={handleClose}>Logout</MenuItem>
                   </Menu>
                 </div>
-              </Box>
+              </Box> */}
             </Box>
           </Box>
         </Box>
