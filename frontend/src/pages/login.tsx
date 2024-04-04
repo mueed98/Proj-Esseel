@@ -8,8 +8,9 @@ import {
 } from "@mui/material";
 import { ethers } from "ethers";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-type ClientType = "Patient" | "Doctor";
+type ClientType = 1 | 2;
 
 declare global {
   interface Window {
@@ -18,51 +19,133 @@ declare global {
 }
 
 export const Login = (): JSX.Element => {
-  const [type, setType] = useState<ClientType>("Doctor");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const provider = new ethers.providers.Web3Provider(window?.ethereum);
+  const [typeUser, setTypeUser] = useState<ClientType>(1);
 
   const [errorMessage, setErrorMessage] = useState("");
   const [defaultAccount, setDefaultAccount] = useState("");
-  const [userBalance, setUserBalance] = useState("");
+
+  const provider = new ethers.providers.Web3Provider(window?.ethereum);
+  let MedicalRecordsContract;
+  const navigate = useNavigate();
+
+  const checkPatDocExists = async (userAddress) => {
+    if (typeUser === 1) {
+      const patientCount = await MedicalRecordsContract.patientCount();
+
+      for (let i = 0; i < patientCount; i++) {
+        // const element = array[i];
+        const patientListAdd = await MedicalRecordsContract.patientList(i);
+
+        if (String(patientListAdd) === String(userAddress)) {
+          return true;
+        }
+      }
+    } else {
+      const docCount = await MedicalRecordsContract.docterCount();
+
+      for (let i = 0; i < docCount; i++) {
+        // const element = array[i];
+        const docterListAdd = await MedicalRecordsContract.docterList(i);
+
+        if (String(docterListAdd) === String(userAddress)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  };
 
   const accountChangedHandler = async (newAccount) => {
     const address = await newAccount.getAddress();
     setDefaultAccount(address);
-    // const balance = await newAccount.getBalance();
-    // setUserBalance(ethers.utils.formatEther(balance));
-
-    const message = "Hello, world!";
-    const messageHash = ethers.utils.hashMessage(message);
 
     const signer = await provider.getSigner();
-    const signature = await signer.signMessage(messageHash);
-    console.log(signature);
 
-    const signatureParts = ethers.utils.splitSignature(signature); // Get public key from the signed message
-
-    const publicKey = ethers.utils.recoverPublicKey(
-      messageHash,
-      signatureParts
-    );
-
-    const MedicalRecordsContract = new ethers.Contract(
-      "0x72bD6C0BCE7D547c2cC56A35dC2bEB3151cEE369",
+    MedicalRecordsContract = new ethers.Contract(
+      "0xe6eDd92F2677f0E561Db49Da2b979DC70D15546a",
       medicalRecordJson,
       signer
     );
 
-    // v5ethers.utils.arrayify() converts the public key to a bytes
-    const check = await MedicalRecordsContract.modifyUser(
-      ethers.utils.arrayify(publicKey),
-      1
-    );
+    const checkUserxists = await checkPatDocExists(address);
 
-    console.log(check);
+    if (checkUserxists) {
+      if (typeUser === 1) {
+        navigate("/MyPatients");
+      } else {
+        navigate("/DrPortal");
+      }
+    } else {
+      const message = "Hello, world!";
+      const messageHash = ethers.utils.hashMessage(message);
+
+      // const signer = await provider.getSigner();
+      // const signature = await signer.signMessage(messageHash);
+      const signature = await window?.ethereum.request({
+        method: "personal_sign",
+        params: [address, message],
+      });
+
+      const signatureParts = ethers.utils.splitSignature(signature);
+
+      const publicKey = ethers.utils.recoverPublicKey(
+        messageHash,
+        signatureParts
+      );
+      // MedicalRecordsContract; = new ethers.Contract(
+      //   "0x72bD6C0BCE7D547c2cC56A35dC2bEB3151cEE369",
+      //   medicalRecordJson,
+      //   signer
+      // );
+
+      // v5ethers.utils.arrayify() converts the public key to a bytes
+      const check = await MedicalRecordsContract.modifyUser(
+        ethers.utils.arrayify(publicKey),
+        typeUser
+      );
+
+      // console.log(publicKey, "publickey");
+      // console.log(
+      //   ethers.utils.computePublicKey(
+      //     "0xa44b6cb3bfa2a3dddc1bdb85b566156936ebdc7145e004ac25fe6ec269c9d52b"
+      //   ),
+      //   "gen"
+      // );
+
+      if (typeUser === 1) {
+        navigate("/MyPatients");
+      } else {
+        navigate("/DrPortal");
+      }
+    }
 
     // const address = await signer.getAddress();
   };
+
+  //   async function comparePublicKeys() {
+  //     // Connect to the MetaMask provider
+  //     const provider = new providers.Web3Provider((window as any).ethereum);
+  //     const signer = provider.getSigner();
+
+  //     // Get the account's private key
+  //     const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
+  //     const account = accounts[0];
+  //     const privateKey = "your private key here"; // replace with actual private key
+
+  //     // Sign a message using MetaMask
+  //     const message =
+  // // Recover the public key from the signed message
+  //     const messageHash = ethers.utils.hashMessage(message);
+  //     const signatureParts = ethers.utils.splitSignature(signature);
+  //     const publicKeyFromSignature = ethers.utils.recoverPublicKey(messageHash, signatureParts);
+
+  //     // Compute the public key from the private key
+  //     const publicKeyFromPrivateKey = ethers.utils.computePublicKey(privateKey);
+
+  //     // Compare the two public keys
+  //     // console.log(`Public key from signature: ${publicKeyFro
+  //   }
 
   const connectwalletHandler = () => {
     if (window.ethereum) {
@@ -94,21 +177,21 @@ export const Login = (): JSX.Element => {
           boxShadow: "0 0 10px rgba(0, 0, 0, 0.1);",
         }}
         width="195px"
-        height="255px"
+        height="150px"
       >
         <Box>
           <Typography>I am a:</Typography>
           <Select
-            value={type}
-            onChange={(e) => setType(e.target.value as ClientType)}
+            value={typeUser}
+            onChange={(e) => setTypeUser(e.target.value as ClientType)}
             sx={{ height: "35px", width: "100%" }}
           >
-            <MenuItem value={"Doctor"}>Doctor</MenuItem>
-            <MenuItem value={"Patient"}>Patient</MenuItem>
+            <MenuItem value={2}>Doctor</MenuItem>
+            <MenuItem value={1}>Patient</MenuItem>
           </Select>
         </Box>
 
-        <Box>
+        {/* <Box>
           <Typography sx={{ paddingTop: "5px" }}>Username</Typography>
           <TextField
             variant="outlined"
@@ -116,9 +199,9 @@ export const Login = (): JSX.Element => {
             onChange={(e) => setUsername(e.target.value)}
             size="small"
           />
-        </Box>
+        </Box> */}
 
-        <Box>
+        {/* <Box>
           <Typography sx={{ paddingTop: "5px" }}>Password</Typography>
           <TextField
             variant="outlined"
@@ -126,17 +209,17 @@ export const Login = (): JSX.Element => {
             onChange={(e) => setPassword(e.target.value)}
             size="small"
           />
-        </Box>
+        </Box> */}
 
         <Button variant="contained" onClick={connectwalletHandler}>
-          Login
+          Login with metamask
         </Button>
       </Box>
     </Box>
   );
 };
 
-const medicalRecordJson = [
+export const medicalRecordJson = [
   {
     inputs: [],
     stateMutability: "nonpayable",
