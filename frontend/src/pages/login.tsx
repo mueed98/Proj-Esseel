@@ -1,14 +1,8 @@
-import {
-  Box,
-  Button,
-  MenuItem,
-  Select,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, MenuItem, Select, Typography } from "@mui/material";
 import { ethers } from "ethers";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+// import Logo from "../assets/medical_record.png"
 
 type ClientType = 1 | 2;
 
@@ -72,9 +66,11 @@ export const Login = (): JSX.Element => {
 
     if (checkUserxists) {
       if (typeUser === 1) {
-        navigate("/MyPatients");
+        sessionStorage.setItem("type", "patient");
+        navigate("/dashboard");
       } else {
-        navigate("/DrPortal");
+        sessionStorage.setItem("type", "doctor");
+        navigate("/dashboard");
       }
     } else {
       const message = "Hello, world!";
@@ -114,38 +110,16 @@ export const Login = (): JSX.Element => {
       // );
 
       if (typeUser === 1) {
-        navigate("/MyPatients");
+        sessionStorage.setItem("type", "patient");
+        navigate("/dashboard");
       } else {
-        navigate("/DrPortal");
+        sessionStorage.setItem("type", "doctor");
+        navigate("/patient");
       }
     }
 
     // const address = await signer.getAddress();
   };
-
-  //   async function comparePublicKeys() {
-  //     // Connect to the MetaMask provider
-  //     const provider = new providers.Web3Provider((window as any).ethereum);
-  //     const signer = provider.getSigner();
-
-  //     // Get the account's private key
-  //     const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
-  //     const account = accounts[0];
-  //     const privateKey = "your private key here"; // replace with actual private key
-
-  //     // Sign a message using MetaMask
-  //     const message =
-  // // Recover the public key from the signed message
-  //     const messageHash = ethers.utils.hashMessage(message);
-  //     const signatureParts = ethers.utils.splitSignature(signature);
-  //     const publicKeyFromSignature = ethers.utils.recoverPublicKey(messageHash, signatureParts);
-
-  //     // Compute the public key from the private key
-  //     const publicKeyFromPrivateKey = ethers.utils.computePublicKey(privateKey);
-
-  //     // Compare the two public keys
-  //     // console.log(`Public key from signature: ${publicKeyFro
-  //   }
 
   const connectwalletHandler = () => {
     if (window.ethereum) {
@@ -170,6 +144,7 @@ export const Login = (): JSX.Element => {
         display="flex"
         flexDirection="column"
         justifyContent="space-between"
+        alignItems="center"
         sx={{
           padding: "20px",
           borderRadius: "10px",
@@ -177,42 +152,29 @@ export const Login = (): JSX.Element => {
           boxShadow: "0 0 10px rgba(0, 0, 0, 0.1);",
         }}
         width="195px"
-        height="150px"
+        height="250px"
       >
+        <img
+          src={require("../assets/medical_record.png")}
+          alt=""
+          width="100px"
+          height="100px"
+        />
         <Box>
           <Typography>I am a:</Typography>
           <Select
             value={typeUser}
             onChange={(e) => setTypeUser(e.target.value as ClientType)}
-            sx={{ height: "35px", width: "100%" }}
+            sx={{ height: "35px", width: "180px" }}
+            fullWidth
           >
             <MenuItem value={2}>Doctor</MenuItem>
             <MenuItem value={1}>Patient</MenuItem>
           </Select>
         </Box>
 
-        {/* <Box>
-          <Typography sx={{ paddingTop: "5px" }}>Username</Typography>
-          <TextField
-            variant="outlined"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            size="small"
-          />
-        </Box> */}
-
-        {/* <Box>
-          <Typography sx={{ paddingTop: "5px" }}>Password</Typography>
-          <TextField
-            variant="outlined"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            size="small"
-          />
-        </Box> */}
-
-        <Button variant="contained" onClick={connectwalletHandler}>
-          Login with metamask
+        <Button variant="contained" onClick={connectwalletHandler} sx={{textTransform:"none"}}>
+          Connect with Metamask
         </Button>
       </Box>
     </Box>

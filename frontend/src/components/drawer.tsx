@@ -5,32 +5,37 @@ import { Avatar, Box, Drawer, Typography } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import GroupIcon from "@mui/icons-material/Group";
 import InboxIcon from "@mui/icons-material/Inbox";
+import { ethers } from "ethers";
 
 export const NavDrawer = (): JSX.Element => {
+  const userType = sessionStorage.getItem("type");
+
   const [selected, setSelected] = useState("dashboard");
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    if (location?.pathname === "/DrPortal") {
-      setSelected("dashboard");
-    }else if(location?.pathname === "/MyPatients"){
-        setSelected("my-patients")
-    }else if(location?.pathname === "/Requests"){
-        setSelected("requests")
+  const [userAddress, setUserAddress] = useState("");
+  const provider = new ethers.providers.Web3Provider(window?.ethereum);
+  const signer = provider.getSigner();
+  signer.getAddress().then((res) => setUserAddress(res));
 
+  useEffect(() => {
+    if (location?.pathname === "/dashboard") {
+      setSelected("dashboard");
+    } else if (location?.pathname === "/my_patients") {
+      setSelected("my-patients");
+    } else if (location?.pathname === "/request") {
+      setSelected("requests");
     }
   }, [location?.pathname]);
 
   return (
-    console.log(location?.pathname),
-    
     <Drawer variant="permanent" anchor="left">
       <Box
         display="flex"
         flexDirection="column"
         sx={{
-          width: "147px",
+          width: "250px",
           backgroundColor: "#0D47A1",
           height: "100%",
         }}
@@ -39,19 +44,19 @@ export const NavDrawer = (): JSX.Element => {
       >
         <Avatar sx={{ height: "104px", width: "104px" }} />
 
-        <Typography variant="h6" sx={{ color: "white" }}>
-          Dr. Ahmed Ali
+        <Typography sx={{ color: "white", fontSize: "12px" }}>
+          {userAddress}
         </Typography>
-        <Typography variant="body2" sx={{ color: "#BDBDBD" }}>
+        {/* <Typography variant="body2" sx={{ color: "#BDBDBD" }}>
           General Practitioner
-        </Typography>
+        </Typography> */}
 
         <Box marginTop="20px">
           <Box
             display="flex"
             //   justifyContent="space-evenly"
             alignItems="center"
-            width="127px"
+            width="227px"
             padding="10px"
             sx={
               selected === "dashboard"
@@ -63,7 +68,7 @@ export const NavDrawer = (): JSX.Element => {
                 : { borderRadius: "5px", cursor: "pointer" }
             }
             onClick={() => {
-              navigate("/DrPortal");
+              navigate("/dashboard");
               setSelected("dashboard");
             }}
           >
@@ -80,71 +85,75 @@ export const NavDrawer = (): JSX.Element => {
             </Typography>
           </Box>
 
-          <Box
-            display="flex"
-            //   justifyContent="space-evenly"
-            alignItems="center"
-            width="127px"
-            padding="10px"
-            sx={
-              selected === "my-patients"
-                ? {
-                    backgroundColor: "#1D4ED8",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                  }
-                : { borderRadius: "5px", cursor: "pointer" }
-            }
-            onClick={() => {
-              navigate("/MyPatients");
-              setSelected("my-patients");
-            }}
-          >
-            <GroupIcon
-              sx={{
-                height: "20px",
-                width: "20px",
-                marginRight: "10px",
-                color: "white",
+          {userType === "doctor" && (
+            <Box
+              display="flex"
+              //   justifyContent="space-evenly"
+              alignItems="center"
+              width="227px"
+              padding="10px"
+              sx={
+                selected === "my-patients"
+                  ? {
+                      backgroundColor: "#1D4ED8",
+                      borderRadius: "5px",
+                      cursor: "pointer",
+                    }
+                  : { borderRadius: "5px", cursor: "pointer" }
+              }
+              onClick={() => {
+                navigate("/my_patients");
+                setSelected("my-patients");
               }}
-            />
-            <Typography variant="body2" color="white">
-              My Patients
-            </Typography>
-          </Box>
+            >
+              <GroupIcon
+                sx={{
+                  height: "20px",
+                  width: "20px",
+                  marginRight: "10px",
+                  color: "white",
+                }}
+              />
+              <Typography variant="body2" color="white">
+                My Patients
+              </Typography>
+            </Box>
+          )}
 
-          <Box
-            display="flex"
-            //   justifyContent="space-evenly"
-            alignItems="center"
-            width="127px"
-            padding="10px"
-            sx={
-              selected === "requests"
-                ? {
-                    backgroundColor: "#1D4ED8",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                  }
-                : { borderRadius: "5px", cursor: "pointer" }
-            }
-            onClick={() => {
-              navigate("/Requests");
-              setSelected("requests");
-            }}
-          >
-            <InboxIcon
-              sx={{
-                height: "20px",
-                width: "20px",
-                marginRight: "10px",
-                color: "white",
+          {userType === "patient" && (
+            <Box
+              display="flex"
+              //   justifyContent="space-evenly"
+              alignItems="center"
+              width="227px"
+              padding="10px"
+              sx={
+                selected === "requests"
+                  ? {
+                      backgroundColor: "#1D4ED8",
+                      borderRadius: "5px",
+                      cursor: "pointer",
+                    }
+                  : { borderRadius: "5px", cursor: "pointer" }
+              }
+              onClick={() => {
+                navigate("/request");
+                setSelected("requests");
               }}
-            />
-            <Typography variant="body2" color="white">
-              Requests
-            </Typography>
-          </Box>
+            >
+              <InboxIcon
+                sx={{
+                  height: "20px",
+                  width: "20px",
+                  marginRight: "10px",
+                  color: "white",
+                }}
+              />
+              <Typography variant="body2" color="white">
+                Requests
+              </Typography>
+            </Box>
+          )}
         </Box>
       </Box>
     </Drawer>

@@ -3,7 +3,6 @@ import {
   createRoutesFromElements,
   Route,
   RouterProvider,
-  Routes,
 } from "react-router-dom";
 import { DrPortal } from "./pages/drportal";
 import { Login } from "./pages/login";
@@ -16,9 +15,9 @@ function App() {
       <>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/DrPortal" element={<DrPortal />} />
-        <Route path="/MyPatients" element={<MyPatients />} />
-        <Route path="/Requests" element={<Requests />} />
+        <Route path="/dashboard" element={<DrPortal />} />
+        <Route path="/my_patients" element={<MyPatients />} />
+        <Route path="/request" element={<Requests />} />
       </>
     )
   );

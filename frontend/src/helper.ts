@@ -60,39 +60,43 @@ async function compressPDF(fileBuffer) {
 }
 
 async function decompressPDF(compressedPDFBase64, fileName) {
-  const compressedPDFBytes = Buffer.from(compressedPDFBase64, "base64");
-  //   const compressedPDFBytes = Buffer.from(compressedPDFBase64).toString('base64');
-  console.log(compressedPDFBytes, "compressedPDFBytes");
-  // console.log(compressedPDFBytes.buffer, "compressedPDFBytes");
-
-  const decompressedPDFBytes = zlib.gunzipSync(compressedPDFBytes);
-
-  console.log(decompressedPDFBytes, "decompressedPDFBytes");
-
-  const pdfDoc = await PDFDocument.load(decompressedPDFBytes);
-
-  console.log(pdfDoc, "pdfDoc");
-  console.log(typeof pdfDoc, "pdfDoc");
-
-  // pdfDoc.addPage([500, 750])
-
-  // const pages = pdfDoc.getPages()
-  // console.log(pages,"pages");
-
-  // console.log(pdfDoc.getPageCount(),"countttttttt");
-
-  const pdfBytes = await pdfDoc.save();
-
-  console.log(pdfBytes, "pdfBytes");
-
-  // writeFileSync(`./test/${fileName}.pdf`, pdfBytes); // Save the decompressed PDF to a file
-
   try {
+    const compressedPDFBytes = Buffer.from(compressedPDFBase64, "base64");
+    //   const compressedPDFBytes = Buffer.from(compressedPDFBase64).toString('base64');
+    console.log(compressedPDFBytes, "compressedPDFBytes");
+    // console.log(compressedPDFBytes.buffer, "compressedPDFBytes");
+
+    const decompressedPDFBytes = zlib.gunzipSync(compressedPDFBytes);
+
+    console.log(decompressedPDFBytes, "decompressedPDFBytes");
+
+    const pdfDoc = await PDFDocument.load(decompressedPDFBytes);
+
+    console.log(pdfDoc, "pdfDoc");
+    console.log(typeof pdfDoc, "pdfDoc");
+
+    // pdfDoc.addPage([500, 750])
+
+    // const pages = pdfDoc.getPages()
+    // console.log(pages,"pages");
+
+    // console.log(pdfDoc.getPageCount(),"countttttttt");
+
+    const pdfBytes = await pdfDoc.save();
+
+    console.log(pdfBytes, "pdfBytes");
+
+    // writeFileSync(`./test/${fileName}.pdf`, pdfBytes); // Save the decompressed PDF to a file
+
+    // try {
     // Write the file asynchronously
     await saveFile(pdfBytes, fileName);
     console.log("PDF saved successfully!");
+    // } catch (error) {
+    //   console.error("Error saving PDF:", error);
+    // }
   } catch (error) {
-    console.error("Error saving PDF:", error);
+    throw new Error("Something went wrong");
   }
 }
 
@@ -170,28 +174,32 @@ function encrypt(text: string, sharedSecret: any) {
 }
 
 function decrypt(encryptedText: string, sharedSecret: any) {
-  const rawData = CryptoJS.enc.Base64.parse(encryptedText);
-  console.log(rawData, "rawData");
+  try {
+    const rawData = CryptoJS.enc.Base64.parse(encryptedText);
+    console.log(rawData, "rawData");
 
-  const iv = CryptoJS.lib.WordArray.create(rawData.words.slice(0, 4));
-  console.log(iv, "iv");
+    const iv = CryptoJS.lib.WordArray.create(rawData.words.slice(0, 4));
+    console.log(iv, "iv");
 
-  const encrypted = CryptoJS.lib.WordArray.create(rawData.words.slice(4));
-  console.log(encrypted, "encrypted");
+    const encrypted = CryptoJS.lib.WordArray.create(rawData.words.slice(4));
+    console.log(encrypted, "encrypted");
 
-  const key = CryptoJS.enc.Hex.parse(
-    v5ethers.utils.hexlify(sharedSecret).substr(2)
-  );
-  console.log(key, "key decrypt");
+    const key = CryptoJS.enc.Hex.parse(
+      v5ethers.utils.hexlify(sharedSecret).substr(2)
+    );
+    console.log(key, "key decrypt");
 
-  const decrypted = CryptoJS.AES.decrypt({ ciphertext: encrypted }, key, {
-    iv: iv,
-  });
-  console.log(decrypted, "decrypted");
-  //   console.log(typeof decrypted, "decrypted");
+    const decrypted = CryptoJS.AES.decrypt({ ciphertext: encrypted }, key, {
+      iv: iv,
+    });
+    console.log(decrypted, "decrypted");
+    //   console.log(typeof decrypted, "decrypted");
 
-  return decrypted.toString(CryptoJS.enc.Utf8);
-  // return decrypted.toString();
+    return decrypted.toString(CryptoJS.enc.Utf8);
+    // return decrypted.toString();
+  } catch (error) {
+    throw new Error("Something went wrong");
+  }
 }
 
 // function decrypt(encryptedText, sharedSecret) {
@@ -232,10 +240,14 @@ function base64ToBytes(base64String: string) {
 }
 
 function bytesToBase64(bytes: any) {
-  bytes = v5ethers.utils.arrayify(bytes);
-  return Buffer.from(v5ethers.utils.hexlify(bytes).substr(2), "hex").toString(
-    "base64"
-  );
+  try {
+    bytes = v5ethers.utils.arrayify(bytes);
+    return Buffer.from(v5ethers.utils.hexlify(bytes).substr(2), "hex").toString(
+      "base64"
+    );
+  } catch (error) {
+    throw new Error("Something went wrong");
+  }
 }
 
 export const helper = {
