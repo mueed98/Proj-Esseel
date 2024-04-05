@@ -12,10 +12,20 @@ import { ethers } from "ethers";
 import { medicalRecordJson } from "./login";
 import { SigningKey } from "ethers/lib/utils";
 import { helper } from "../helper";
+import { MedicalRecordContractAdd } from "../contract";
+import { useNavigate } from "react-router-dom";
 
 export const Requests = (): JSX.Element => {
   const userType = sessionStorage.getItem("type");
   const [list, setList] = useState([]);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!(userType === "patient" || userType === "doctor")) {
+      navigate("/");
+    }
+  }, [userType]);
 
   const [selectedDoc, setselectedDoc] = useState("");
   const [privateKey, setprivateKey] = useState("");
@@ -26,7 +36,8 @@ export const Requests = (): JSX.Element => {
   // signer.getAddress().then((res) => setUserAddress(res));
 
   const MedicalRecordsContract = new ethers.Contract(
-    "0xe6eDd92F2677f0E561Db49Da2b979DC70D15546a",
+    // "0xe6eDd92F2677f0E561Db49Da2b979DC70D15546a",
+    MedicalRecordContractAdd,
     medicalRecordJson,
     signer
   );
@@ -204,9 +215,9 @@ export const Requests = (): JSX.Element => {
         <TextField
           variant="outlined"
           value={privateKey}
-          onChange={(e) =>
-            setprivateKey("0x" + String(e.target.value).replace("0x", ""))
-          }
+          onChange={(e) => {
+            setprivateKey("0x" + String(e.target.value).replace("0x", ""));
+          }}
           size="small"
           sx={{ width: "70vw", marginTop: "5px" }}
           placeholder="Enter private key"
