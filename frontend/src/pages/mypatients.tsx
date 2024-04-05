@@ -199,11 +199,11 @@ export const MyPatients = (): JSX.Element => {
             display="flex"
             alignItems="center"
             padding="20px"
-            width="540px"
+            width="600px"
             justifyContent="space-between"
             marginTop="5px"
             sx={
-              selectedPat
+              selectedPat===val
                 ? {
                     backgroundColor: "rgb(249 250 251)",
                     borderRadius: "10px",

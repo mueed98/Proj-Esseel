@@ -150,7 +150,7 @@ export const Login = (): JSX.Element => {
         navigate("/dashboard");
       } else {
         sessionStorage.setItem("type", "doctor");
-        navigate("/patient");
+        navigate("/dashboard");
       }
     }
 
