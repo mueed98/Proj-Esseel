@@ -10,6 +10,8 @@ import { MyPatients } from "./pages/mypatients";
 import { Requests } from "./pages/requests";
 
 function App() {
+  const userType = sessionStorage.getItem("type");
+
   const router = createBrowserRouter(
     createRoutesFromElements(
       <>

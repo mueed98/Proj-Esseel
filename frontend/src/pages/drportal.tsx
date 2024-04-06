@@ -3,11 +3,20 @@ import { Box, Divider, Typography } from "@mui/material";
 import { NavDrawer } from "../components/drawer";
 import { ethers } from "ethers";
 import { medicalRecordJson } from "./login";
+import { MedicalRecordContractAdd } from "../contract";
+import { useNavigate } from "react-router-dom";
 
 export const DrPortal = (): JSX.Element => {
   const userType = sessionStorage.getItem("type");
   const [count, setCount] = useState();
   const [list, setList] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!(userType === "patient" || userType === "doctor")) {
+      navigate("/");
+    }
+  }, [userType]);
 
   // const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   // const open = Boolean(anchorEl);
@@ -24,7 +33,8 @@ export const DrPortal = (): JSX.Element => {
   // signer.getAddress().then((res) => setUserAddress(res));
 
   const MedicalRecordsContract = new ethers.Contract(
-    "0xe6eDd92F2677f0E561Db49Da2b979DC70D15546a",
+    // "0xe6eDd92F2677f0E561Db49Da2b979DC70D15546a",
+    MedicalRecordContractAdd,
     medicalRecordJson,
     signer
   );

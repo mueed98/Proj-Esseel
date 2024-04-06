@@ -2,6 +2,7 @@ import { Box, Button, MenuItem, Select, Typography } from "@mui/material";
 import { ethers } from "ethers";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { MedicalRecordContractAdd } from "../contract";
 // import Logo from "../assets/medical_record.png"
 
 type ClientType = 1 | 2;
@@ -50,6 +51,40 @@ export const Login = (): JSX.Element => {
     return false;
   };
 
+  const checkNetwork = async () => {
+    const chainId = 421614;
+
+    if (window.ethereum.networkVersion !== chainId) {
+      try {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          // params: [{ chainId: ethers.utils.hexlify(chainId) }],
+          params: [{ chainId: `0x${Number(421614).toString(16)}` }],
+        });
+      } catch (err) {
+        // This error code indicates that the chain has not been added to MetaMask
+        if (err.code === 4902) {
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [
+              {
+                chainName: "Arbitrum Sepolia",
+                // chainId: ethers.utils.hexlify(chainId),
+                chainId: `0x${Number(421614).toString(16)}`,
+                nativeCurrency: {
+                  name: "ETH",
+                  decimals: 18,
+                  symbol: "ETH",
+                },
+                rpcUrls: ["https://sepolia-rollup.arbitrum.io/rpc"],
+              },
+            ],
+          });
+        }
+      }
+    }
+  };
+
   const accountChangedHandler = async (newAccount) => {
     const address = await newAccount.getAddress();
     setDefaultAccount(address);
@@ -57,7 +92,8 @@ export const Login = (): JSX.Element => {
     const signer = await provider.getSigner();
 
     MedicalRecordsContract = new ethers.Contract(
-      "0xe6eDd92F2677f0E561Db49Da2b979DC70D15546a",
+      // "0xe6eDd92F2677f0E561Db49Da2b979DC70D15546a",
+      MedicalRecordContractAdd,
       medicalRecordJson,
       signer
     );
@@ -73,7 +109,7 @@ export const Login = (): JSX.Element => {
         navigate("/dashboard");
       }
     } else {
-      const message = "Hello, world!";
+      const message = "Welcome, you are signing up.";
       const messageHash = ethers.utils.hashMessage(message);
 
       // const signer = await provider.getSigner();
@@ -114,7 +150,7 @@ export const Login = (): JSX.Element => {
         navigate("/dashboard");
       } else {
         sessionStorage.setItem("type", "doctor");
-        navigate("/patient");
+        navigate("/dashboard");
       }
     }
 
@@ -124,6 +160,7 @@ export const Login = (): JSX.Element => {
   const connectwalletHandler = () => {
     if (window.ethereum) {
       provider.send("eth_requestAccounts", []).then(async () => {
+        await checkNetwork();
         await accountChangedHandler(provider.getSigner());
       });
     } else {
@@ -173,7 +210,11 @@ export const Login = (): JSX.Element => {
           </Select>
         </Box>
 
-        <Button variant="contained" onClick={connectwalletHandler} sx={{textTransform:"none"}}>
+        <Button
+          variant="contained"
+          onClick={connectwalletHandler}
+          sx={{ textTransform: "none" }}
+        >
           Connect with Metamask
         </Button>
       </Box>

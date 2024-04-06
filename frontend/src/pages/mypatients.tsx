@@ -13,11 +13,21 @@ import { ethers } from "ethers";
 import { medicalRecordJson } from "./login";
 import { SigningKey } from "ethers/lib/utils";
 import { helper } from "../helper";
+import { MedicalRecordContractAdd } from "../contract";
+import { useNavigate } from "react-router-dom";
 
 export const MyPatients = (): JSX.Element => {
   const userType = sessionStorage.getItem("type");
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!(userType === "patient" || userType === "doctor")) {
+      navigate("/");
+    }
+  }, [userType]);
 
   // const [search, setSearch] = useState("");
   const [userAddress, setUserAddress] = useState("");
@@ -35,7 +45,8 @@ export const MyPatients = (): JSX.Element => {
   signer.getAddress().then((res) => setUserAddress(res));
 
   const MedicalRecordsContract = new ethers.Contract(
-    "0xe6eDd92F2677f0E561Db49Da2b979DC70D15546a",
+    // "0xe6eDd92F2677f0E561Db49Da2b979DC70D15546a",
+    MedicalRecordContractAdd,
     medicalRecordJson,
     signer
   );
@@ -188,11 +199,11 @@ export const MyPatients = (): JSX.Element => {
             display="flex"
             alignItems="center"
             padding="20px"
-            width="540px"
+            width="600px"
             justifyContent="space-between"
             marginTop="5px"
             sx={
-              selectedPat
+              selectedPat===val
                 ? {
                     backgroundColor: "rgb(249 250 251)",
                     borderRadius: "10px",
