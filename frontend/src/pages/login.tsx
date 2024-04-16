@@ -333,6 +333,19 @@ export const medicalRecordJson = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "getMedicationRecord",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -420,6 +433,11 @@ export const medicalRecordJson = [
         name: "exists",
         type: "bool",
       },
+      {
+        internalType: "bytes",
+        name: "medicationFile",
+        type: "bytes",
+      },
     ],
     stateMutability: "view",
     type: "function",
@@ -441,6 +459,19 @@ export const medicalRecordJson = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "_medicationFile",
+        type: "bytes",
+      },
+    ],
+    name: "uploadMedicationRecord",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
