@@ -1,6 +1,7 @@
 import {
   Avatar,
   Box,
+  Button,
   InputAdornment,
   TextField,
   Typography,
@@ -18,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 export const Requests = (): JSX.Element => {
   const userType = sessionStorage.getItem("type");
   const [list, setList] = useState([]);
+  const [userAddress, setUserAddress] = useState("");
 
   const navigate = useNavigate();
 
@@ -33,7 +35,7 @@ export const Requests = (): JSX.Element => {
   const provider = new ethers.providers.Web3Provider(window?.ethereum);
   const signer = provider.getSigner();
 
-  // signer.getAddress().then((res) => setUserAddress(res));
+  signer.getAddress().then((res) => setUserAddress(res));
 
   const MedicalRecordsContract = new ethers.Contract(
     // "0xe6eDd92F2677f0E561Db49Da2b979DC70D15546a",
@@ -127,136 +129,209 @@ export const Requests = (): JSX.Element => {
     reader.readAsArrayBuffer(file);
   };
 
+  const signAndUpload = async (event) => {
+    const message = "You are creating signature for medication file";
+    const signature = await window?.ethereum.request({
+      method: "personal_sign",
+      params: [userAddress, message],
+    });
+
+    const KEY = ethers.utils.keccak256(signature);
+
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = async (event) => {
+      const content = event.target.result;
+
+      const FILE = await helper.compressPDF(content);
+      const encryptedFile = await helper.encrypt(FILE, KEY);
+      const encryptedFileBytes = helper.base64ToBytes(encryptedFile);
+
+      await MedicalRecordsContract.uploadMedicationRecord(encryptedFileBytes);
+    };
+
+    reader.readAsArrayBuffer(file);
+  };
+
+  const getMedication = async () => {
+    const message = "You are creating signature for medication file";
+    const signature = await window?.ethereum.request({
+      method: "personal_sign",
+      params: [userAddress, message],
+    });
+
+    const KEY = ethers.utils.keccak256(signature);
+
+    const patientFile = await MedicalRecordsContract.getMedicationRecord();
+    const encryptedFileBase64 = await helper.bytesToBase64(patientFile);
+    const decryptedFileBase64 = await helper.decrypt(encryptedFileBase64, KEY); // Decompress the file
+
+    await helper.decompressPDF(decryptedFileBase64, "read-medication");
+  };
+
   return (
     <Box display="flex">
       <NavDrawer />
 
-      <Box marginLeft="310px" marginTop="20px">
-        <Typography variant="h6" fontWeight="800" color="black">
-          Upload your medical record.
-        </Typography>
+      <Box>
+        <Box marginLeft="310px" marginTop="20px">
+          <Typography variant="h6" fontWeight="800" color="black">
+            Upload your medical record.
+          </Typography>
 
-        <Typography
-          variant="body1"
-          fontWeight="800"
-          color="black"
-          marginTop="20px"
-        >
-          Step 1: Choose a doctor
-        </Typography>
-
-        {list.map((val) => (
-          // <Box
-          //   sx={
-          //     selectedDoc === val
-          //       ? {
-          //           padding: "5px",
-          //           borderWidth: "1px",
-          //           borderStyle: "solid",
-          //           borderColor: "green",
-          //           cursor: "pointer",
-          //           marginTop: "5px",
-          //         }
-          //       : {
-          //           marginTop: "5px",
-          //           cursor: "pointer",
-          //         }
-          //   }
-          //   onClick={() => setselectedDoc(val)}
-          // >
-          //   <Typography variant="body1">{val}</Typography>
-          // </Box>
-          <Box
-            display="flex"
-            alignItems="center"
-            padding="20px"
-            width="600px"
-            justifyContent="space-between"
-            marginTop="5px"
-            sx={
-              selectedDoc===val
-                ? {
-                    backgroundColor: "rgb(249 250 251)",
-                    borderRadius: "10px",
-                    borderWidth: "1px",
-                    borderStyle: "solid",
-                    borderColor: "green",
-                    cursor: "pointer",
-                  }
-                : {
-                    backgroundColor: "rgb(249 250 251)",
-                    borderRadius: "10px",
-                  }
-            }
-            onClick={() => setselectedDoc(val)}
+          <Typography
+            variant="body1"
+            fontWeight="800"
+            color="black"
+            marginTop="20px"
           >
-            <Box display="flex">
-              <Avatar
-                sx={{ height: "54px", width: "54px", marginRight: "10px" }}
-              />
-              <Box>
-                <Typography variant="h6" fontWeight="800">
-                  {val}
-                </Typography>
+            Step 1: Choose a doctor
+          </Typography>
+
+          {list.map((val) => (
+            // <Box
+            //   sx={
+            //     selectedDoc === val
+            //       ? {
+            //           padding: "5px",
+            //           borderWidth: "1px",
+            //           borderStyle: "solid",
+            //           borderColor: "green",
+            //           cursor: "pointer",
+            //           marginTop: "5px",
+            //         }
+            //       : {
+            //           marginTop: "5px",
+            //           cursor: "pointer",
+            //         }
+            //   }
+            //   onClick={() => setselectedDoc(val)}
+            // >
+            //   <Typography variant="body1">{val}</Typography>
+            // </Box>
+            <Box
+              display="flex"
+              alignItems="center"
+              padding="20px"
+              width="600px"
+              justifyContent="space-between"
+              marginTop="5px"
+              sx={
+                selectedDoc === val
+                  ? {
+                      backgroundColor: "rgb(249 250 251)",
+                      borderRadius: "10px",
+                      borderWidth: "1px",
+                      borderStyle: "solid",
+                      borderColor: "green",
+                      cursor: "pointer",
+                    }
+                  : {
+                      backgroundColor: "rgb(249 250 251)",
+                      borderRadius: "10px",
+                    }
+              }
+              onClick={() => setselectedDoc(val)}
+            >
+              <Box display="flex">
+                <Avatar
+                  sx={{ height: "54px", width: "54px", marginRight: "10px" }}
+                />
+                <Box>
+                  <Typography variant="h6" fontWeight="800">
+                    {val}
+                  </Typography>
+                </Box>
               </Box>
             </Box>
-          </Box>
-        ))}
+          ))}
 
-        <Typography
-          variant="body1"
-          fontWeight="800"
-          color="black"
-          marginTop="20px"
-        >
-          Step 2: Please enter your private key
-        </Typography>
+          <Typography
+            variant="body1"
+            fontWeight="800"
+            color="black"
+            marginTop="20px"
+          >
+            Step 2: Please enter your private key
+          </Typography>
 
-        <TextField
-          variant="outlined"
-          value={privateKey}
-          onChange={(e) => {
-            setprivateKey("0x" + String(e.target.value).replace("0x", ""));
-          }}
-          size="small"
-          sx={{ width: "70vw", marginTop: "5px" }}
-          placeholder="Enter private key"
-          disabled={selectedDoc ? false : true}
-        />
+          <TextField
+            variant="outlined"
+            value={privateKey}
+            onChange={(e) => {
+              setprivateKey("0x" + String(e.target.value).replace("0x", ""));
+            }}
+            size="small"
+            sx={{ width: "70vw", marginTop: "5px" }}
+            placeholder="Enter private key"
+            disabled={selectedDoc ? false : true}
+          />
 
-        <Typography
-          variant="body1"
-          fontWeight="800"
-          color="black"
-          marginTop="20px"
-        >
-          Step 3: Choose your pdf to upload
-        </Typography>
+          <Typography
+            variant="body1"
+            fontWeight="800"
+            color="black"
+            marginTop="20px"
+          >
+            Step 3: Choose your pdf to upload
+          </Typography>
 
-        <input
-          type="file"
-          onChange={handleFileInputChange}
-          disabled={privateKey.length === 66 ? false : true}
-          style={{ marginTop: "5px" }}
-          accept="application/pdf"
-        />
+          <input
+            type="file"
+            onChange={handleFileInputChange}
+            disabled={privateKey.length === 66 ? false : true}
+            style={{ marginTop: "5px" }}
+            accept="application/pdf"
+          />
+        </Box>
 
-        {/* <TextField
-          variant="outlined"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          size="small"
-          sx={{ width: "70vw",marginTop:"20px" }}
-          placeholder="Search for patients."
-          InputProps={{
-            sx: { borderRadius: "50px", backgroundColor: "white" },
-            endAdornment: (
-              <InputAdornment position="end">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-        /> */}
+        <Box marginLeft="310px" marginTop="50px">
+          <Typography variant="h6" fontWeight="800" color="black">
+            Upload your medication.
+          </Typography>
+
+          <Typography
+            variant="body1"
+            fontWeight="800"
+            color="black"
+            marginTop="20px"
+          >
+            Step 1: Choose your pdf to upload
+          </Typography>
+
+          <input
+            type="file"
+            onChange={signAndUpload}
+            style={{ marginTop: "5px" }}
+            accept="application/pdf"
+          />
+        </Box>
+
+        <Box marginLeft="310px" marginTop="50px">
+          <Typography variant="h6" fontWeight="800" color="black">
+            Get your medication.
+          </Typography>
+
+          <Typography
+            variant="body1"
+            fontWeight="800"
+            color="black"
+            marginTop="20px"
+          >
+            Step 1: Get you pdf
+          </Typography>
+
+          {/* <input
+            type="file"
+            onChange={signAndUpload}
+            style={{ marginTop: "5px" }}
+            accept="application/pdf"
+          /> */}
+          <Button variant="contained" onClick={getMedication}>
+            Get your pdf
+          </Button>
+        </Box>
       </Box>
     </Box>
   );
