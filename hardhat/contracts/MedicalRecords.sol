@@ -13,6 +13,7 @@ contract MedicalRecords {
     // Patient struct
     struct Patient {
         bool exists; // Encrypted IPFS link to the patient's medical record
+        bytes medicationFile; // Encrypted patient's medication record
         mapping(address => bool) doctorPermission; // Mapping to keep track of doctors authorized to access the medical record
         mapping(address => bytes) doctorFiles; // Mapping to keep track of files associated with each authorized doctor
     }
@@ -71,6 +72,16 @@ contract MedicalRecords {
             patients[msg.sender].doctorFiles[_doctor] = _fileForDoctor;
             docterAccess[_doctor].push(msg.sender);
         }
+    }
+
+    function uploadMedicationRecord(
+        bytes calldata _medicationFile
+    ) public onlyRole(Role.Patient) {
+        patients[msg.sender].medicationFile = _medicationFile;
+    }
+
+    function getMedicationRecord() public view returns (bytes memory) {
+        return patients[msg.sender].medicationFile;
     }
 
     function getDoctorPermission(

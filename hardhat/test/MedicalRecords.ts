@@ -4,6 +4,7 @@ import { MedicalRecords } from "../typechain-types";
 import { Bytes, Signer, ethers as v5ethers } from "v5ethers";
 import { helper } from "./helper";
 import { SigningKey } from "v5ethers/lib/utils";
+const CryptoJS = require("crypto-js");
 
 describe("MedicalRecords Contract", function () {
 	let CONTRACT: MedicalRecords;
@@ -148,6 +149,37 @@ describe("MedicalRecords Contract", function () {
 		); // Decompress the file
 
 		await helper.decompressPDF(decryptedFileBase64, "doctor");
+	});
+
+	it("Upload Medication", async function () {
+		// Patient Signs the message
+		const message = "You are creating signature for medication file";
+		const signature = await PATIENT.signMessage(message);
+
+		const KEY = v5ethers.utils.keccak256(signature);
+
+		// Encrypt the file with the shared secret
+		const FILE = await helper.compressPDF("./medication.pdf");
+		const encryptedFile = await helper.encrypt(FILE, KEY);
+		const encryptedFileBytes = helper.base64ToBytes(encryptedFile);
+
+		// Save the file for patient
+		await CONTRACT.connect(PATIENT).uploadMedicationRecord(encryptedFileBytes);
+		const patientFile = await CONTRACT.connect(PATIENT).getMedicationRecord();
+	});
+
+	it("Read the medication file ", async function () {
+		// Patient Signs the message
+		const message = "You are creating signature for medication file";
+		const signature = await PATIENT.signMessage(message);
+		const KEY = v5ethers.utils.keccak256(signature);
+
+		// Reading the file from blockchain
+		const patientFile = await CONTRACT.connect(PATIENT).getMedicationRecord();
+		const encryptedFileBase64 = await helper.bytesToBase64(patientFile);
+		const decryptedFileBase64 = await helper.decrypt(encryptedFileBase64, KEY); // Decompress the file
+
+		await helper.decompressPDF(decryptedFileBase64, "read-medication");
 	});
 
 	/*
