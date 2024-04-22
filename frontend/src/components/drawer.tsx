@@ -27,6 +27,8 @@ export const NavDrawer = (): JSX.Element => {
       setSelected("my-patients");
     } else if (location?.pathname === "/request") {
       setSelected("requests");
+    } else if (location?.pathname === "/medication") {
+      setSelected("medication");
     }
   }, [location?.pathname]);
 
@@ -160,6 +162,41 @@ export const NavDrawer = (): JSX.Element => {
                 />
                 <Typography variant="body2" color="white">
                   Requests
+                </Typography>
+              </Box>
+            )}
+
+            {userType === "patient" && (
+              <Box
+                display="flex"
+                //   justifyContent="space-evenly"
+                alignItems="center"
+                width="227px"
+                padding="10px"
+                sx={
+                  selected === "medication"
+                    ? {
+                        backgroundColor: "#1D4ED8",
+                        borderRadius: "5px",
+                        cursor: "pointer",
+                      }
+                    : { borderRadius: "5px", cursor: "pointer" }
+                }
+                onClick={() => {
+                  navigate("/medication");
+                  setSelected("medication");
+                }}
+              >
+                <InboxIcon
+                  sx={{
+                    height: "20px",
+                    width: "20px",
+                    marginRight: "10px",
+                    color: "white",
+                  }}
+                />
+                <Typography variant="body2" color="white">
+                  Medication
                 </Typography>
               </Box>
             )}
