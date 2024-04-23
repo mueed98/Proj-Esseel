@@ -16,6 +16,7 @@ contract MedicalRecords {
         bytes medicationFile; // Encrypted patient's medication record
         mapping(address => bool) doctorPermission; // Mapping to keep track of doctors authorized to access the medical record
         mapping(address => bytes) doctorFiles; // Mapping to keep track of files associated with each authorized doctor
+        mapping(address => bytes) modifiedFileFromDoctor; // Mapping to keep track of files associated with each authorized doctor
     }
 
     // Mapping from user's address to their public keys
@@ -80,6 +81,17 @@ contract MedicalRecords {
         patients[msg.sender].medicationFile = _medicationFile;
     }
 
+    function updatePatientMedicalRecord(
+        address _patient,
+        bytes calldata _medicationFile
+    ) public onlyRole(Role.Doctor) {
+        require(
+            getDoctorPermission(_patient, msg.sender) == true,
+            "Not authorized."
+        );
+        patients[_patient].modifiedFileFromDoctor[msg.sender] = _medicationFile;
+    }
+
     function getMedicationRecord() public view returns (bytes memory) {
         return patients[msg.sender].medicationFile;
     }
@@ -96,5 +108,12 @@ contract MedicalRecords {
         address _doctor
     ) public view returns (bytes memory) {
         return patients[_patient].doctorFiles[_doctor];
+    }
+
+    function getModifiedFileFromDoctor(
+        address _patient,
+        address _doctor
+    ) public view returns (bytes memory) {
+        return patients[_patient].modifiedFileFromDoctor[_doctor];
     }
 }

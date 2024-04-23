@@ -149,6 +149,42 @@ describe("MedicalRecords Contract", function () {
 		); // Decompress the file
 
 		await helper.decompressPDF(decryptedFileBase64, "doctor");
+
+		// --- NEW LINES ---
+		// this is new file that doctor will upload to the patient
+		const FILE = await helper.compressPDF("./doctor.pdf");
+		const encryptedFile = await helper.encrypt(FILE, sharedSecret);
+		const encryptedFileBytes = helper.base64ToBytes(encryptedFile);
+
+		// Save the file for pateint
+		await CONTRACT.connect(DOCTOR).updatePatientMedicalRecord(
+			PATIENT.address,
+			encryptedFileBytes
+		);
+	});
+
+	// --- NEW TEST ---
+	it("Read the new file from patient's end", async function () {
+		const doctorPublicKeyHex = await CONTRACT.publicKeys(DOCTOR.address);
+
+		// Convert the public key to a bytes array, which is what ethers.js expects
+		const doctorPublicKeyBytes = v5ethers.utils.arrayify(doctorPublicKeyHex);
+		const sharedSecret = new SigningKey(PATIENT.privateKey).computeSharedSecret(
+			doctorPublicKeyBytes
+		);
+		// write code to read code from blockchain and decrypt it and save it just like the in the test named "save file from patient"
+		const patientFile = await CONTRACT.connect(
+			PATIENT
+		).getModifiedFileFromDoctor(PATIENT.address, DOCTOR.address);
+		const encryptedFileBase64 = await helper.bytesToBase64(patientFile);
+		const decryptedFileBase64 = await helper.decrypt(
+			encryptedFileBase64,
+			sharedSecret
+		);
+		await helper.decompressPDF(
+			decryptedFileBase64,
+			"new-medical-record-from-doctor"
+		);
 	});
 
 	it("Upload Medication", async function () {
