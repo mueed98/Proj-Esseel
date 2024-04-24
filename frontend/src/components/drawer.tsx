@@ -29,6 +29,10 @@ export const NavDrawer = (): JSX.Element => {
       setSelected("requests");
     } else if (location?.pathname === "/medication") {
       setSelected("medication");
+    } else if (location?.pathname === "/request-doctor") {
+      setSelected("request-doctor");
+    }else if (location?.pathname === "/my_doctor") {
+      setSelected("my_doctor");
     }
   }, [location?.pathname]);
 
@@ -139,6 +143,41 @@ export const NavDrawer = (): JSX.Element => {
                 width="227px"
                 padding="10px"
                 sx={
+                  selected === "my-patients"
+                    ? {
+                        backgroundColor: "#1D4ED8",
+                        borderRadius: "5px",
+                        cursor: "pointer",
+                      }
+                    : { borderRadius: "5px", cursor: "pointer" }
+                }
+                onClick={() => {
+                  navigate("/my_doctor");
+                  setSelected("my-doctor");
+                }}
+              >
+                <GroupIcon
+                  sx={{
+                    height: "20px",
+                    width: "20px",
+                    marginRight: "10px",
+                    color: "white",
+                  }}
+                />
+                <Typography variant="body2" color="white">
+                  My Doctor
+                </Typography>
+              </Box>
+            )}
+
+            {userType === "patient" && (
+              <Box
+                display="flex"
+                //   justifyContent="space-evenly"
+                alignItems="center"
+                width="227px"
+                padding="10px"
+                sx={
                   selected === "requests"
                     ? {
                         backgroundColor: "#1D4ED8",
@@ -150,6 +189,41 @@ export const NavDrawer = (): JSX.Element => {
                 onClick={() => {
                   navigate("/request");
                   setSelected("requests");
+                }}
+              >
+                <InboxIcon
+                  sx={{
+                    height: "20px",
+                    width: "20px",
+                    marginRight: "10px",
+                    color: "white",
+                  }}
+                />
+                <Typography variant="body2" color="white">
+                  Requests
+                </Typography>
+              </Box>
+            )}
+
+            {userType === "doctor" && (
+              <Box
+                display="flex"
+                //   justifyContent="space-evenly"
+                alignItems="center"
+                width="227px"
+                padding="10px"
+                sx={
+                  selected === "requests"
+                    ? {
+                        backgroundColor: "#1D4ED8",
+                        borderRadius: "5px",
+                        cursor: "pointer",
+                      }
+                    : { borderRadius: "5px", cursor: "pointer" }
+                }
+                onClick={() => {
+                  navigate("/request-doctor");
+                  setSelected("requests-doctor");
                 }}
               >
                 <InboxIcon

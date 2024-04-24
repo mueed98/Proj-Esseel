@@ -349,6 +349,30 @@ export const medicalRecordJson = [
     inputs: [
       {
         internalType: "address",
+        name: "_patient",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_doctor",
+        type: "address",
+      },
+    ],
+    name: "getModifiedFileFromDoctor",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "_doctor",
         type: "address",
       },
@@ -459,6 +483,24 @@ export const medicalRecordJson = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_patient",
+        type: "address",
+      },
+      {
+        internalType: "bytes",
+        name: "_medicationFile",
+        type: "bytes",
+      },
+    ],
+    name: "updatePatientMedicalRecord",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
